@@ -40,7 +40,7 @@ fn intialize_population(genes: Vec<Gene>, population_size: i32) -> Population<Ge
         }
 
         //2- Sets the dna into the individual vector
-        individuals.push(Genotype{dna, phenotype:0.0});
+        individuals.push(Genotype{dna, phenotype:0.0, age:0});
 
     }
 
@@ -61,10 +61,11 @@ fn main() {
         let configuration = GaConfiguration{
             problem_solving: ProblemSolving::Minimization,
             max_generations: 100,
-            selection: Selection::Random,
+            selection: Selection::FitnessProportionate,
             crossover: Crossover::Cycle,
             mutation: Mutation::Swap,
             survivor: Survivor::Fitness,
+            crossover_number_of_points: 0,
         };
 
         //We run genetic algorithms

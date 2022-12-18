@@ -21,6 +21,7 @@ impl GeneT for Gene{
 pub struct Genotype<Gene>{
     pub dna: Vec<Gene>,
     pub phenotype: f64,
+    pub age: i32,
 }
 impl GenotypeT<Gene> for Genotype<Gene>{
     fn get_dna(&self) -> &Vec<Gene> {
@@ -31,6 +32,12 @@ impl GenotypeT<Gene> for Genotype<Gene>{
     }
     fn get_phenotype(&self) -> &f64 {
         return &self.phenotype;
+    }
+    fn get_age_mut(&mut self) -> &mut i32 {
+        &mut self.age
+    }
+    fn get_age(&self) -> &i32 {
+        &self.age
     }
     fn calculate_phenotype(&mut self) {
 
@@ -53,9 +60,10 @@ impl GenotypeT<Gene> for Genotype<Gene>{
         self.phenotype = distance;
     }
     fn new() -> Self {
-       return Genotype{
-        dna: Vec::new(),
-        phenotype: 0.0,
-       }
+        return Genotype{
+            dna: Vec::new(),
+            phenotype: 0.0,
+            age: 0,
+        }
     }
 }

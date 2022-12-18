@@ -44,9 +44,9 @@ dependencies = [
 
 [[package]]
 name = "genetic_algorithms"
-version = "0.1.1"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efee42f1e61aeb97c3ba22719f3d28d966c9ad483e67b6f75f23e3af396632b3"
+checksum = "8f5ba7df7b8c56b56dd01f3debd87a39f9f549a36b7eae9f9a9d8cecf5efb2cd"
 dependencies = [
  "log",
  "rand",
@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "traveller_problem"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "csv",
  "genetic_algorithms",
