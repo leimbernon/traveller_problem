@@ -60,8 +60,9 @@ fn main() {
         let population = intialize_population(csv_read.unwrap(), 30);
         let configuration = GaConfiguration{
             problem_solving: ProblemSolving::Minimization,
-            max_generations: 100,
-            selection: Selection::FitnessProportionate,
+            max_generations: 1000,
+            number_of_couples: 8,
+            selection: Selection::StochasticUniversalSampling,
             crossover: Crossover::Cycle,
             mutation: Mutation::Swap,
             survivor: Survivor::Fitness,
