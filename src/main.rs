@@ -59,10 +59,11 @@ fn main() {
         //We initialize the population and the configuration
         let population = intialize_population(csv_read.unwrap(), 30);
         let configuration = GaConfiguration{
+            number_of_threads: Some(4),
             limit_configuration: LimitConfiguration{max_generations: 1000, fitness_target: None, problem_solving: ProblemSolving::Maximization},
-            selection_configuration: Some(SelectionConfiguration{number_of_couples: 8}),
+            selection_configuration: Some(SelectionConfiguration{number_of_couples: 10}),
             crossover_configuration: None,
-            selection: Selection::Random,
+            selection: Selection::Tournament,
             crossover: Crossover::Cycle,
             mutation: Mutation::Swap,
             survivor: Survivor::Fitness,
