@@ -5,7 +5,7 @@ use serde::Deserialize;
 pub struct Gene{
     pub id: i32,
     pub x: f64,
-    pub y: f64
+    pub y: f64,
 }
 impl GeneT for Gene{
     fn new()->Gene{

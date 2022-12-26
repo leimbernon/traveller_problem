@@ -24,8 +24,9 @@ fn intialize_population(genes: Vec<Gene>, population_size: i32) -> Population<Ge
     let mut individuals = Vec::new();
 
     //Creates the individuals to fill the population
-    for _i in 0..population_size{
+    for i in 0..population_size{
 
+        println!("Initialization of the individual: {}", i);
         let mut rng = rand::thread_rng();
         let mut tmp_genes = genes.clone();
         let mut dna = Vec::new();
@@ -57,11 +58,11 @@ fn main() {
     }else{
 
         //We initialize the population and the configuration
-        let population = intialize_population(csv_read.unwrap(), 30);
+        let population = intialize_population(csv_read.unwrap(), 500);
         let configuration = GaConfiguration{
-            number_of_threads: Some(4),
-            limit_configuration: LimitConfiguration{max_generations: 1000, fitness_target: None, problem_solving: ProblemSolving::Maximization},
-            selection_configuration: Some(SelectionConfiguration{number_of_couples: 10}),
+            number_of_threads: Some(8),
+            limit_configuration: LimitConfiguration{max_generations: 100000, fitness_target: None, problem_solving: ProblemSolving::Minimization},
+            selection_configuration: Some(SelectionConfiguration{number_of_couples: 200}),
             crossover_configuration: None,
             selection: Selection::Tournament,
             crossover: Crossover::Cycle,
