@@ -1,5 +1,5 @@
-use std::{error::Error, process};
-use genetic_algorithms::{population::{Population}, ga::{GaConfiguration, ProblemSolving}, operations::{Selection, Crossover, Mutation, Survivor}};
+use std::{error::Error, process, time::Instant};
+use genetic_algorithms::{population::{Population}, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}};
 use rand::Rng;
 use structures::Genotype;
 use crate::structures::Gene;
@@ -40,7 +40,7 @@ fn intialize_population(genes: Vec<Gene>, population_size: i32) -> Population<Ge
         }
 
         //2- Sets the dna into the individual vector
-        individuals.push(Genotype{dna, phenotype:0.0, age:0});
+        individuals.push(Genotype{dna, fitness:0.0, age:0});
 
     }
 
@@ -59,17 +59,21 @@ fn main() {
         //We initialize the population and the configuration
         let population = intialize_population(csv_read.unwrap(), 30);
         let configuration = GaConfiguration{
-            problem_solving: ProblemSolving::Minimization,
-            max_generations: 1000,
-            number_of_couples: 8,
-            selection: Selection::StochasticUniversalSampling,
+            limit_configuration: LimitConfiguration{max_generations: 1000, fitness_target: None, problem_solving: ProblemSolving::Maximization},
+            selection_configuration: Some(SelectionConfiguration{number_of_couples: 8}),
+            crossover_configuration: None,
+            selection: Selection::Random,
             crossover: Crossover::Cycle,
             mutation: Mutation::Swap,
             survivor: Survivor::Fitness,
-            crossover_number_of_points: 0,
         };
 
         //We run genetic algorithms
-        genetic_algorithms::ga::run(population, configuration);
+        let start = Instant::now();
+        let best_population = genetic_algorithms::ga::run(population, configuration);
+        let duration = start.elapsed();
+
+        println!("Best fitness: {}", best_population.individuals[0].fitness);
+        println!("Time elapsed in genetic algorithms() is: {:?}", duration);
     }
 }
