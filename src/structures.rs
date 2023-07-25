@@ -5,7 +5,7 @@ use serde::Deserialize;
 pub struct Gene{
     pub id: i32,
     pub x: f64,
-    pub y: f64
+    pub y: f64,
 }
 impl GeneT for Gene{
     fn new()->Gene{
@@ -20,7 +20,8 @@ impl GeneT for Gene{
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Genotype<Gene>{
     pub dna: Vec<Gene>,
-    pub phenotype: f64,
+    pub fitness: f64,
+    pub age: i32,
 }
 impl GenotypeT<Gene> for Genotype<Gene>{
     fn get_dna(&self) -> &Vec<Gene> {
@@ -29,10 +30,19 @@ impl GenotypeT<Gene> for Genotype<Gene>{
     fn get_dna_mut(&mut self) -> &mut Vec<Gene> {
         &mut self.dna
     }
-    fn get_phenotype(&self) -> &f64 {
-        return &self.phenotype;
+    fn get_fitness(&self) -> &f64 {
+        &self.fitness
     }
-    fn calculate_phenotype(&mut self) {
+    fn get_fitness_mut(&mut self) -> &mut f64 {
+        &mut self.fitness
+    }
+    fn get_age_mut(&mut self) -> &mut i32 {
+        &mut self.age
+    }
+    fn get_age(&self) -> &i32 {
+        &self.age
+    }
+    fn calculate_fitness(&mut self) {
 
         let mut distance = 0.0;
         let mut last_gene_x = 0.0;
@@ -50,12 +60,13 @@ impl GenotypeT<Gene> for Genotype<Gene>{
                 last_gene_y = gene.y;
             }
         }
-        self.phenotype = distance;
+        self.fitness = distance;
     }
     fn new() -> Self {
-       return Genotype{
-        dna: Vec::new(),
-        phenotype: 0.0,
-       }
+        return Genotype{
+            dna: Vec::new(),
+            fitness: 0.0,
+            age: 0,
+        }
     }
 }

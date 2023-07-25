@@ -1,14 +1,15 @@
-use std::{error::Error, process};
-use genetic_algorithms::{population::{self, Population}, ga::{GaConfiguration, ProblemSolving}, operations::{Selection, Crossover, Mutation, Survivor}};
+use std::{error::Error, process, time::Instant};
+use genetic_algorithms::{population::Population, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}, traits::GenotypeT};
 use rand::Rng;
 use structures::Genotype;
+use plotly::{Plot, Scatter};
 use crate::structures::Gene;
 
 mod structures;
 
 //Function to read the CSV
 fn csv_reader() -> Result<Vec<Gene>, Box<dyn Error>> {
-    let mut rdr = csv::Reader::from_path("./data/cities.csv")?;
+    let mut rdr = csv::Reader::from_path("./data/cities_minimized.csv")?;
     let mut genes = Vec::new();
     for result in rdr.deserialize() {
         let record: Gene = result?;
@@ -18,14 +19,34 @@ fn csv_reader() -> Result<Vec<Gene>, Box<dyn Error>> {
     Ok(genes)
 }
 
+//Function to write a plot with the results of the ga
+fn write_plot(best_population: Population<Gene, Genotype<Gene>>){
+
+    //We create the vectors needed for the plot
+    let mut x = vec![];
+    let mut y = vec![];
+
+    for i in 0..best_population.individuals.len(){
+        x.push(i);
+        y.push(best_population.individuals[i].fitness);
+    }
+
+    let mut plot = Plot::new();
+    let trace = Scatter::new(x, y);
+    plot.add_trace(trace);
+    
+    plot.write_html("out.html");
+}
+
 //Function to initialize the population
 fn intialize_population(genes: Vec<Gene>, population_size: i32) -> Population<Gene, Genotype<Gene>>{
 
     let mut individuals = Vec::new();
 
     //Creates the individuals to fill the population
-    for _i in 0..population_size{
+    for i in 0..population_size{
 
+        println!("Initialization of the individual: {}", i);
         let mut rng = rand::thread_rng();
         let mut tmp_genes = genes.clone();
         let mut dna = Vec::new();
@@ -40,7 +61,7 @@ fn intialize_population(genes: Vec<Gene>, population_size: i32) -> Population<Ge
         }
 
         //2- Sets the dna into the individual vector
-        individuals.push(Genotype{dna, phenotype:0.0});
+        individuals.push(Genotype{dna, fitness:0.0, age:0});
 
     }
 
@@ -57,17 +78,27 @@ fn main() {
     }else{
 
         //We initialize the population and the configuration
-        let population = intialize_population(csv_read.unwrap(), 30);
+        let population = intialize_population(csv_read.unwrap(), 100);
         let configuration = GaConfiguration{
-            problem_solving: ProblemSolving::Minimization,
-            max_generations: 100,
-            selection: Selection::Random,
+            number_of_threads: Some(8),
+            limit_configuration: LimitConfiguration{max_generations: 1000, fitness_target: None, problem_solving: ProblemSolving::Minimization, get_best_individual_by_generation: Some(true)},
+            selection_configuration: Some(SelectionConfiguration{number_of_couples: 100}),
+            crossover_configuration: None,
+            selection: Selection::Tournament,
             crossover: Crossover::Cycle,
             mutation: Mutation::Swap,
             survivor: Survivor::Fitness,
         };
 
         //We run genetic algorithms
-        genetic_algorithms::ga::run(population, configuration);
+        let start = Instant::now();
+        let best_population = genetic_algorithms::ga::run(population, configuration);
+        let duration = start.elapsed();
+
+        println!("Best fitness: {}", best_population.individuals[0].fitness);
+        println!("Time elapsed in genetic algorithms() is: {:?}", duration);
+
+        //We write the plot with the results
+        write_plot(best_population);
     }
 }

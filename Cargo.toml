@@ -1,12 +1,13 @@
 [package]
 name = "traveller_problem"
-version = "0.1.0"
+version = "0.4.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-genetic_algorithms="0.1.1"
+genetic_algorithms="0.8.0"
 csv = "1.1"
 rand = "0.8.5"
+plotly = "0.8.4"
 serde = { version = "1", features = ["derive"] }
