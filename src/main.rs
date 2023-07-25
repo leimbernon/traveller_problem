@@ -1,7 +1,8 @@
 use std::{error::Error, process, time::Instant};
-use genetic_algorithms::{population::Population, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}};
+use genetic_algorithms::{population::Population, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}, traits::GenotypeT};
 use rand::Rng;
 use structures::Genotype;
+use plotly::{Plot, Scatter};
 use crate::structures::Gene;
 
 mod structures;
@@ -16,6 +17,25 @@ fn csv_reader() -> Result<Vec<Gene>, Box<dyn Error>> {
         println!("{:?}", record);
     }
     Ok(genes)
+}
+
+//Function to write a plot with the results of the ga
+fn write_plot(best_population: Population<Gene, Genotype<Gene>>){
+
+    //We create the vectors needed for the plot
+    let mut x = vec![];
+    let mut y = vec![];
+
+    for i in 0..best_population.individuals.len(){
+        x.push(i);
+        y.push(best_population.individuals[i].fitness);
+    }
+
+    let mut plot = Plot::new();
+    let trace = Scatter::new(x, y);
+    plot.add_trace(trace);
+    
+    plot.write_html("out.html");
 }
 
 //Function to initialize the population
@@ -61,7 +81,7 @@ fn main() {
         let population = intialize_population(csv_read.unwrap(), 100);
         let configuration = GaConfiguration{
             number_of_threads: Some(8),
-            limit_configuration: LimitConfiguration{max_generations: 1000, fitness_target: None, problem_solving: ProblemSolving::Minimization},
+            limit_configuration: LimitConfiguration{max_generations: 1000, fitness_target: None, problem_solving: ProblemSolving::Minimization, get_best_individual_by_generation: Some(true)},
             selection_configuration: Some(SelectionConfiguration{number_of_couples: 100}),
             crossover_configuration: None,
             selection: Selection::Tournament,
@@ -77,5 +97,8 @@ fn main() {
 
         println!("Best fitness: {}", best_population.individuals[0].fitness);
         println!("Time elapsed in genetic algorithms() is: {:?}", duration);
+
+        //We write the plot with the results
+        write_plot(best_population);
     }
 }
