@@ -1,5 +1,5 @@
 use std::{error::Error, process, time::Instant};
-use genetic_algorithms::{population::{Population}, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}};
+use genetic_algorithms::{population::Population, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}};
 use rand::Rng;
 use structures::Genotype;
 use crate::structures::Gene;
