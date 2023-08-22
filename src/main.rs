@@ -1,5 +1,5 @@
 use std::{error::Error, process, time::Instant};
-use genetic_algorithms::{population::Population, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}, traits::GenotypeT};
+use genetic_algorithms::{population::Population, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration, CrossoverConfiguration, MutationConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}};
 use rand::Rng;
 use structures::Genotype;
 use plotly::{Plot, Scatter};
@@ -82,11 +82,9 @@ fn main() {
         let configuration = GaConfiguration{
             number_of_threads: Some(8),
             limit_configuration: LimitConfiguration{max_generations: 1000, fitness_target: None, problem_solving: ProblemSolving::Minimization, get_best_individual_by_generation: Some(true)},
-            selection_configuration: Some(SelectionConfiguration{number_of_couples: 100}),
-            crossover_configuration: None,
-            selection: Selection::Tournament,
-            crossover: Crossover::Cycle,
-            mutation: Mutation::Swap,
+            selection_configuration: SelectionConfiguration{number_of_couples: Some(100), method: Selection::Tournament},
+            crossover_configuration: CrossoverConfiguration{method: Crossover::Cycle, number_of_points: None, probability: None},
+            mutation_configuration: MutationConfiguration{method: Mutation::Swap, probability: None},
             survivor: Survivor::Fitness,
         };
 
