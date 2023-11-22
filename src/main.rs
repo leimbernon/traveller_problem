@@ -2,7 +2,7 @@ use std::{error::Error, process, time::Instant};
 use genetic_algorithms::{population::Population, operations::{Selection, Crossover, Mutation, Survivor}, configuration::{ProblemSolving, LogLevel}, ga::Ga, traits::ConfigurationT};
 use rand::Rng;
 use structures::Genotype;
-use plotly::{Plot, Scatter};
+use plotly::{Plot, Scatter, Layout, layout::Axis, common::Title};
 use crate::structures::Gene;
 
 mod structures;
@@ -20,20 +20,27 @@ fn csv_reader() -> Result<Vec<Gene>, Box<dyn Error>> {
 }
 
 //Function to write a plot with the results of the ga
-fn write_plot(best_population: Population<Genotype>){
-
-    //We create the vectors needed for the plot
-    let mut x = vec![];
-    let mut y = vec![];
-
-    for i in 0..best_population.individuals.len(){
-        x.push(i);
-        y.push(best_population.individuals[i].fitness);
-    }
+fn write_plot(best_populations: Vec<Population<Genotype>>, names: Vec<String>){
 
     let mut plot = Plot::new();
-    let trace = Scatter::new(x, y);
-    plot.add_trace(trace);
+    let layout = Layout::new().x_axis(Axis::new().title(Title::from("Generation number")))
+                            .y_axis(Axis::new().title(Title::from("Distance")))
+                            .title(Title::from("Comparison GA vs AGA in Traveller Problem"));
+
+    for (i, population) in best_populations.iter().enumerate() {
+        //We create the vectors needed for the plot
+        let mut x = vec![];
+        let mut y = vec![];
+
+        for i in 0..population.individuals.len(){
+            x.push(i);
+            y.push(population.individuals[i].fitness);
+        }
+
+        let trace = Scatter::new(x, y).name(&names[i]);
+        plot.add_trace(trace);
+        plot.set_layout(layout.clone());
+    }
     
     plot.write_html("out.html");
 }
@@ -118,8 +125,8 @@ fn main() {
             .with_alleles_can_be_repeated(false)
             .with_population_size(100)
             .with_adaptive_ga(true)
-            .with_crossover_probability_min(0.1)
-            .with_crossover_probability_max(0.9)
+            .with_crossover_probability_min(0.3)
+            .with_crossover_probability_max(1.0)
             .run();          
         let aga_duration = start.elapsed();
 
@@ -132,6 +139,6 @@ fn main() {
         println!("Time elapsed in adaptive genetic algorithms() is: {:?}", aga_duration);
 
         //We write the plot with the results
-        write_plot(best_population_without_aga);
+        write_plot(vec![best_population_without_aga, best_population_with_aga], vec![String::from("GA"), String::from("AGA")]);
     }
 }
