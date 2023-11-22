@@ -1,12 +1,12 @@
 [package]
 name = "traveller_problem"
-version = "0.4.1"
+version = "1.0.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-genetic_algorithms="0.9.0"
+genetic_algorithms="1.3.2"
 csv = "1.1"
 rand = "0.8.5"
 plotly = "0.8.4"

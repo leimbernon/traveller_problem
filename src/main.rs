@@ -1,5 +1,5 @@
 use std::{error::Error, process, time::Instant};
-use genetic_algorithms::{population::Population, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration, CrossoverConfiguration, MutationConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}};
+use genetic_algorithms::{population::Population, operations::{Selection, Crossover, Mutation, Survivor}, configuration::{ProblemSolving, LogLevel}, ga::Ga, traits::ConfigurationT};
 use rand::Rng;
 use structures::Genotype;
 use plotly::{Plot, Scatter};
@@ -20,7 +20,7 @@ fn csv_reader() -> Result<Vec<Gene>, Box<dyn Error>> {
 }
 
 //Function to write a plot with the results of the ga
-fn write_plot(best_population: Population<Gene, Genotype<Gene>>){
+fn write_plot(best_population: Population<Genotype>){
 
     //We create the vectors needed for the plot
     let mut x = vec![];
@@ -39,7 +39,7 @@ fn write_plot(best_population: Population<Gene, Genotype<Gene>>){
 }
 
 //Function to initialize the population
-fn intialize_population(genes: Vec<Gene>, population_size: i32) -> Population<Gene, Genotype<Gene>>{
+fn intialize_population(genes: Vec<Gene>, population_size: i32) -> Population<Genotype>{
 
     let mut individuals = Vec::new();
 
@@ -78,19 +78,27 @@ fn main() {
     }else{
 
         //We initialize the population and the configuration
-        let population = intialize_population(csv_read.unwrap(), 100);
-        let configuration = GaConfiguration{
-            number_of_threads: Some(8),
-            limit_configuration: LimitConfiguration{max_generations: 1000, fitness_target: None, problem_solving: ProblemSolving::Minimization, get_best_individual_by_generation: Some(true)},
-            selection_configuration: SelectionConfiguration{number_of_couples: Some(100), method: Selection::Tournament},
-            crossover_configuration: CrossoverConfiguration{method: Crossover::Cycle, number_of_points: None, probability: None},
-            mutation_configuration: MutationConfiguration{method: Mutation::Swap, probability: None},
-            survivor: Survivor::Fitness,
-        };
+        let alleles = csv_read.unwrap();
+        let genes_per_individual = alleles.len();
 
         //We run genetic algorithms
         let start = Instant::now();
-        let best_population = genetic_algorithms::ga::run(population, configuration);
+        let best_population: Population<Genotype> = Ga::new()
+            .with_threads(8)
+            .with_logs(LogLevel::Info)
+            .with_max_generations(1000)
+            .with_problem_solving(ProblemSolving::Minimization)
+            .with_best_individual_by_generation(true)
+            .with_number_of_couples(10)
+            .with_selection_method(Selection::Tournament)
+            .with_crossover_method(Crossover::Cycle)
+            .with_mutation_method(Mutation::Swap)
+            .with_survivor_method(Survivor::Fitness)
+            .with_alleles(alleles)
+            .with_genes_per_individual(genes_per_individual as i32)
+            .with_alleles_can_be_repeated(false)
+            .with_population_size(100)
+            .run();          
         let duration = start.elapsed();
 
         println!("Best fitness: {}", best_population.individuals[0].fitness);

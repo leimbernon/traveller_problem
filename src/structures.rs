@@ -8,39 +8,40 @@ pub struct Gene{
     pub y: f64,
 }
 impl GeneT for Gene{
-    fn new()->Gene{
-        return Gene{id: -1, x: 0.0, y: 0.0};
+    fn get_id(&self) -> i32{
+        return self.id;
     }
-    fn get_id(&self) -> &i32{
-        return &self.id;
+    fn set_id(&mut self, id: i32) {
+        self.id = id;
     }
 }
 
 
 #[derive(Debug, Clone, Default, PartialEq)]
-pub struct Genotype<Gene>{
+pub struct Genotype{
     pub dna: Vec<Gene>,
     pub fitness: f64,
     pub age: i32,
 }
-impl GenotypeT<Gene> for Genotype<Gene>{
-    fn get_dna(&self) -> &Vec<Gene> {
+impl GenotypeT for Genotype{
+    type Gene = Gene;
+    fn get_dna(&self) -> &[Self::Gene] {
         &self.dna
     }
-    fn get_dna_mut(&mut self) -> &mut Vec<Gene> {
-        &mut self.dna
+    fn set_dna(&mut self, dna: &[Self::Gene]){
+        self.dna = dna.to_vec();
     }
-    fn get_fitness(&self) -> &f64 {
-        &self.fitness
+    fn get_fitness(&self) -> f64 {
+        return self.fitness;
     }
-    fn get_fitness_mut(&mut self) -> &mut f64 {
-        &mut self.fitness
+    fn set_fitness(&mut self, fitness: f64) {
+        self.fitness = fitness;
     }
-    fn get_age_mut(&mut self) -> &mut i32 {
-        &mut self.age
+    fn set_age(&mut self, age:i32){
+        self.age = age;
     }
-    fn get_age(&self) -> &i32 {
-        &self.age
+    fn get_age(&self) -> i32 {
+        self.age
     }
     fn calculate_fitness(&mut self) {
 
@@ -61,12 +62,5 @@ impl GenotypeT<Gene> for Genotype<Gene>{
             }
         }
         self.fitness = distance;
-    }
-    fn new() -> Self {
-        return Genotype{
-            dna: Vec::new(),
-            fitness: 0.0,
-            age: 0,
-        }
     }
 }
