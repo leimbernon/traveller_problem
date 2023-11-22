@@ -92,7 +92,7 @@ fn main() {
         let best_population_without_aga: Population<Genotype> = Ga::new()
             .with_threads(8)
             .with_logs(LogLevel::Info)
-            .with_max_generations(1000)
+            .with_max_generations(5000)
             .with_problem_solving(ProblemSolving::Minimization)
             .with_best_individual_by_generation(true)
             .with_number_of_couples(10)
@@ -112,7 +112,7 @@ fn main() {
         let best_population_with_aga: Population<Genotype> = Ga::new()
             .with_threads(8)
             .with_logs(LogLevel::Info)
-            .with_max_generations(1000)
+            .with_max_generations(5000)
             .with_problem_solving(ProblemSolving::Minimization)
             .with_best_individual_by_generation(true)
             .with_number_of_couples(10)
@@ -127,6 +127,8 @@ fn main() {
             .with_adaptive_ga(true)
             .with_crossover_probability_min(0.3)
             .with_crossover_probability_max(1.0)
+            .with_mutation_probability_min(0.3)
+            .with_mutation_probability_max(1.0)
             .run();          
         let aga_duration = start.elapsed();
 
