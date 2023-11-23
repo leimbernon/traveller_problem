@@ -1,6 +1,5 @@
 use std::{error::Error, process, time::Instant};
 use genetic_algorithms::{population::Population, operations::{Selection, Crossover, Mutation, Survivor}, configuration::{ProblemSolving, LogLevel}, ga::Ga, traits::ConfigurationT};
-use rand::Rng;
 use structures::Genotype;
 use plotly::{Plot, Scatter, Layout, layout::Axis, common::Title};
 use crate::structures::Gene;
@@ -24,7 +23,7 @@ fn write_plot(best_populations: Vec<Population<Genotype>>, names: Vec<String>){
 
     let mut plot = Plot::new();
     let layout = Layout::new().x_axis(Axis::new().title(Title::from("Generation number")))
-                            .y_axis(Axis::new().title(Title::from("Distance")))
+                            .y_axis(Axis::new().title(Title::from("Fitness")))
                             .title(Title::from("Comparison GA vs AGA in Traveller Problem"));
 
     for (i, population) in best_populations.iter().enumerate() {
@@ -45,38 +44,6 @@ fn write_plot(best_populations: Vec<Population<Genotype>>, names: Vec<String>){
     plot.write_html("out.html");
 }
 
-//Function to initialize the population
-fn intialize_population(genes: Vec<Gene>, population_size: i32) -> Population<Genotype>{
-
-    let mut individuals = Vec::new();
-
-    //Creates the individuals to fill the population
-    for i in 0..population_size{
-
-        println!("Initialization of the individual: {}", i);
-        let mut rng = rand::thread_rng();
-        let mut tmp_genes = genes.clone();
-        let mut dna = Vec::new();
-
-        //1- Selects the genes randomly from the vector without repeating them
-        for _j in 0..tmp_genes.len(){
-            let index = rng.gen_range(0..tmp_genes.len());
-            let gene = tmp_genes.get(index).copied().unwrap();
-            tmp_genes.remove(index);
-
-            dna.push(gene);
-        }
-
-        //2- Sets the dna into the individual vector
-        individuals.push(Genotype{dna, fitness:0.0, age:0});
-
-    }
-
-    //3- Sets the population
-    return Population::new(individuals);
-}
-
-
 fn main() {
     let csv_read = csv_reader();
     if let Err(err) = csv_read {
@@ -91,7 +58,7 @@ fn main() {
         let start = Instant::now();
         let best_population_without_aga: Population<Genotype> = Ga::new()
             .with_threads(8)
-            .with_logs(LogLevel::Info)
+            .with_logs(LogLevel::Off)
             .with_max_generations(5000)
             .with_problem_solving(ProblemSolving::Minimization)
             .with_best_individual_by_generation(true)
@@ -104,6 +71,7 @@ fn main() {
             .with_genes_per_individual(alleles.len() as i32)
             .with_alleles_can_be_repeated(false)
             .with_population_size(100)
+            .with_adaptive_ga(false)
             .run();          
         let duration = start.elapsed();
 
@@ -111,7 +79,7 @@ fn main() {
         let start = Instant::now();
         let best_population_with_aga: Population<Genotype> = Ga::new()
             .with_threads(8)
-            .with_logs(LogLevel::Info)
+            .with_logs(LogLevel::Debug)
             .with_max_generations(5000)
             .with_problem_solving(ProblemSolving::Minimization)
             .with_best_individual_by_generation(true)
@@ -125,9 +93,9 @@ fn main() {
             .with_alleles_can_be_repeated(false)
             .with_population_size(100)
             .with_adaptive_ga(true)
-            .with_crossover_probability_min(0.3)
+            .with_crossover_probability_min(0.5)
             .with_crossover_probability_max(1.0)
-            .with_mutation_probability_min(0.3)
+            .with_mutation_probability_min(0.5)
             .with_mutation_probability_max(1.0)
             .run();          
         let aga_duration = start.elapsed();
