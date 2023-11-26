@@ -58,7 +58,7 @@ fn main() {
         let start = Instant::now();
         let best_population_without_aga: Population<Genotype> = Ga::new()
             .with_threads(8)
-            .with_logs(LogLevel::Off)
+            .with_logs(LogLevel::Info)
             .with_max_generations(5000)
             .with_problem_solving(ProblemSolving::Minimization)
             .with_best_individual_by_generation(true)
@@ -79,7 +79,7 @@ fn main() {
         let start = Instant::now();
         let best_population_with_aga: Population<Genotype> = Ga::new()
             .with_threads(8)
-            .with_logs(LogLevel::Debug)
+            .with_logs(LogLevel::Info)
             .with_max_generations(5000)
             .with_problem_solving(ProblemSolving::Minimization)
             .with_best_individual_by_generation(true)
