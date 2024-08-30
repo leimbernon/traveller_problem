@@ -1,8 +1,8 @@
 use std::{error::Error, process, time::Instant};
-use genetic_algorithms::{population::Population, configuration::{GaConfiguration, ProblemSolving, LimitConfiguration, SelectionConfiguration, CrossoverConfiguration, MutationConfiguration}, operations::{Selection, Crossover, Mutation, Survivor}};
-use rand::Rng;
+use genetic_algorithms::{population::Population, operations::{Selection, Crossover, Mutation, Survivor}, configuration::{ProblemSolving, LogLevel}, ga::Ga, traits::ConfigurationT};
+use genetic_algorithms::ga::TerminationCause;
 use structures::Genotype;
-use plotly::{Plot, Scatter};
+use plotly::{Plot, Scatter, Layout, layout::Axis, common::Title};
 use crate::structures::Gene;
 
 mod structures;
@@ -20,55 +20,34 @@ fn csv_reader() -> Result<Vec<Gene>, Box<dyn Error>> {
 }
 
 //Function to write a plot with the results of the ga
-fn write_plot(best_population: Population<Gene, Genotype<Gene>>){
-
-    //We create the vectors needed for the plot
-    let mut x = vec![];
-    let mut y = vec![];
-
-    for i in 0..best_population.individuals.len(){
-        x.push(i);
-        y.push(best_population.individuals[i].fitness);
-    }
+fn write_plot(best_populations: Vec<Population<Genotype>>, names: Vec<String>){
 
     let mut plot = Plot::new();
-    let trace = Scatter::new(x, y);
-    plot.add_trace(trace);
+    let layout = Layout::new().x_axis(Axis::new().title(Title::from("Generation number")))
+                            .y_axis(Axis::new().title(Title::from("Fitness")))
+                            .title(Title::from("Comparison GA vs AGA in Traveller Problem"));
+
+    for (i, population) in best_populations.iter().enumerate() {
+        //We create the vectors needed for the plot
+        let mut x = vec![];
+        let mut y = vec![];
+
+        for i in 0..population.individuals.len(){
+            x.push(i);
+            y.push(population.individuals[i].fitness);
+        }
+
+        let trace = Scatter::new(x, y).name(&names[i]);
+        plot.add_trace(trace);
+        plot.set_layout(layout.clone());
+    }
     
     plot.write_html("out.html");
 }
 
-//Function to initialize the population
-fn intialize_population(genes: Vec<Gene>, population_size: i32) -> Population<Gene, Genotype<Gene>>{
-
-    let mut individuals = Vec::new();
-
-    //Creates the individuals to fill the population
-    for i in 0..population_size{
-
-        println!("Initialization of the individual: {}", i);
-        let mut rng = rand::thread_rng();
-        let mut tmp_genes = genes.clone();
-        let mut dna = Vec::new();
-
-        //1- Selects the genes randomly from the vector without repeating them
-        for _j in 0..tmp_genes.len(){
-            let index = rng.gen_range(0..tmp_genes.len());
-            let gene = tmp_genes.get(index).copied().unwrap();
-            tmp_genes.remove(index);
-
-            dna.push(gene);
-        }
-
-        //2- Sets the dna into the individual vector
-        individuals.push(Genotype{dna, fitness:0.0, age:0});
-
-    }
-
-    //3- Sets the population
-    return Population::new(individuals);
+fn callback(generation_number: &i32, _: &Population<Genotype>, _: TerminationCause ){
+    println!("Generation number: {}", generation_number);
 }
-
 
 fn main() {
     let csv_read = csv_reader();
@@ -77,26 +56,66 @@ fn main() {
         process::exit(1);
     }else{
 
-        //We initialize the population and the configuration
-        let population = intialize_population(csv_read.unwrap(), 100);
-        let configuration = GaConfiguration{
-            number_of_threads: Some(8),
-            limit_configuration: LimitConfiguration{max_generations: 1000, fitness_target: None, problem_solving: ProblemSolving::Minimization, get_best_individual_by_generation: Some(true)},
-            selection_configuration: SelectionConfiguration{number_of_couples: Some(100), method: Selection::Tournament},
-            crossover_configuration: CrossoverConfiguration{method: Crossover::Cycle, number_of_points: None, probability: None},
-            mutation_configuration: MutationConfiguration{method: Mutation::Swap, probability: None},
-            survivor: Survivor::Fitness,
-        };
+        //We get the alleles
+        let alleles = csv_read.unwrap();
 
-        //We run genetic algorithms
+        //We run genetic algorithms without adaptive genetic algorithms
         let start = Instant::now();
-        let best_population = genetic_algorithms::ga::run(population, configuration);
+        let best_population_without_aga: Population<Genotype> = Ga::new()
+            .with_threads(8)
+            .with_logs(LogLevel::Info)
+            .with_max_generations(5000)
+            .with_problem_solving(ProblemSolving::Minimization)
+            .with_best_individual_by_generation(true)
+            .with_number_of_couples(10)
+            .with_selection_method(Selection::Tournament)
+            .with_crossover_method(Crossover::Cycle)
+            .with_mutation_method(Mutation::Swap)
+            .with_survivor_method(Survivor::Fitness)
+            .with_alleles(alleles.clone())
+            .with_genes_per_individual(alleles.len() as i32)
+            .with_alleles_can_be_repeated(false)
+            .with_population_size(100)
+            .with_adaptive_ga(false)
+            .with_logs(LogLevel::Warn)
+            .run_with_callback(Some(callback), 100);
         let duration = start.elapsed();
 
-        println!("Best fitness: {}", best_population.individuals[0].fitness);
+        //We run genetic algorithms with adaptive genetic algorithms
+        let start = Instant::now();
+        let best_population_with_aga: Population<Genotype> = Ga::new()
+            .with_threads(8)
+            .with_logs(LogLevel::Info)
+            .with_max_generations(5000)
+            .with_problem_solving(ProblemSolving::Minimization)
+            .with_best_individual_by_generation(true)
+            .with_number_of_couples(10)
+            .with_selection_method(Selection::Tournament)
+            .with_crossover_method(Crossover::Cycle)
+            .with_mutation_method(Mutation::Swap)
+            .with_survivor_method(Survivor::Fitness)
+            .with_alleles(alleles.clone())
+            .with_genes_per_individual(alleles.len() as i32)
+            .with_alleles_can_be_repeated(false)
+            .with_population_size(100)
+            .with_adaptive_ga(true)
+            .with_crossover_probability_min(0.5)
+            .with_crossover_probability_max(1.0)
+            .with_mutation_probability_min(0.5)
+            .with_mutation_probability_max(1.0)
+            .with_logs(LogLevel::Warn)
+            .run_with_callback(Some(callback), 100);
+        let aga_duration = start.elapsed();
+
+
+        //Write the results
+        println!("Best fitness: {}", best_population_without_aga.individuals[0].fitness);
         println!("Time elapsed in genetic algorithms() is: {:?}", duration);
 
+        println!("Best aga fitness: {}", best_population_with_aga.individuals[0].fitness);
+        println!("Time elapsed in adaptive genetic algorithms() is: {:?}", aga_duration);
+
         //We write the plot with the results
-        write_plot(best_population);
+        write_plot(vec![best_population_without_aga, best_population_with_aga], vec![String::from("GA"), String::from("AGA")]);
     }
 }
