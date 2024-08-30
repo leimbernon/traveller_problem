@@ -1,5 +1,6 @@
 use std::{error::Error, process, time::Instant};
 use genetic_algorithms::{population::Population, operations::{Selection, Crossover, Mutation, Survivor}, configuration::{ProblemSolving, LogLevel}, ga::Ga, traits::ConfigurationT};
+use genetic_algorithms::ga::TerminationCause;
 use structures::Genotype;
 use plotly::{Plot, Scatter, Layout, layout::Axis, common::Title};
 use crate::structures::Gene;
@@ -44,6 +45,10 @@ fn write_plot(best_populations: Vec<Population<Genotype>>, names: Vec<String>){
     plot.write_html("out.html");
 }
 
+fn callback(generation_number: &i32, _: &Population<Genotype>, _: TerminationCause ){
+    println!("Generation number: {}", generation_number);
+}
+
 fn main() {
     let csv_read = csv_reader();
     if let Err(err) = csv_read {
@@ -72,7 +77,8 @@ fn main() {
             .with_alleles_can_be_repeated(false)
             .with_population_size(100)
             .with_adaptive_ga(false)
-            .run();          
+            .with_logs(LogLevel::Warn)
+            .run_with_callback(Some(callback), 100);
         let duration = start.elapsed();
 
         //We run genetic algorithms with adaptive genetic algorithms
@@ -97,7 +103,8 @@ fn main() {
             .with_crossover_probability_max(1.0)
             .with_mutation_probability_min(0.5)
             .with_mutation_probability_max(1.0)
-            .run();          
+            .with_logs(LogLevel::Warn)
+            .run_with_callback(Some(callback), 100);
         let aga_duration = start.elapsed();
 
 
